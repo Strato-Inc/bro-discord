@@ -165,25 +165,40 @@ The bot uses SQLite to store user points. The database file is created automatic
 1. Create a Railway account at [railway.app](https://railway.app)
 2. Create a new project
 3. Connect your GitHub repository (or deploy directly)
-4. Add environment variables in Railway dashboard:
-   - `DISCORD_TOKEN` - Your bot token
-   - `BOT_NAME` - Bot name (optional)
-   - `POINT_GIVER_ROLE_NAME` - Role name (optional)
-   - `DATABASE_FILE` - Database path (optional)
+4. **IMPORTANT: Add environment variables BEFORE the bot starts:**
+   - Click on your project in Railway
+   - Click on the **"Variables"** tab (or go to your service → Variables)
+   - Click **"New Variable"** or **"Raw Editor"**
+   - Add these variables (one per line, or use the form):
+     ```
+     DISCORD_TOKEN=your_actual_bot_token_here
+     BOT_NAME=Bro
+     POINT_GIVER_ROLE_NAMES=b28,b27,b26
+     DATABASE_FILE=/app/data/points.db
+     ```
+   - Click **"Save"** or **"Deploy"**
 5. Railway will automatically detect the `Procfile` and deploy
-6. The bot will start automatically
+6. The bot will start automatically once `DISCORD_TOKEN` is set
 
-### Railway Environment Variables
+### Railway Environment Variables Setup
 
-In Railway, go to your project → Variables tab and add:
-```
-DISCORD_TOKEN=your_bot_token_here
-BOT_NAME=Bro
-POINT_GIVER_ROLE_NAMES=b28,b27,b26
-DATABASE_FILE=/app/data/points.db
-```
+**Step-by-step:**
+1. In Railway dashboard, select your project
+2. Click on your service (the deployed app)
+3. Go to the **"Variables"** tab
+4. Click **"New Variable"** for each variable, OR click **"Raw Editor"** to add multiple at once
+5. Add these exact variable names and values:
+   - `DISCORD_TOKEN` = `your_bot_token_from_discord_developer_portal`
+   - `BOT_NAME` = `Bro` (optional)
+   - `POINT_GIVER_ROLE_NAMES` = `b28,b27,b26` (your roles, comma-separated)
+   - `DATABASE_FILE` = `/app/data/points.db` (optional, for persistence)
 
-**Note:** For Railway, it's recommended to use `/app/data/points.db` for the database file to persist data.
+**⚠️ Important Notes:**
+- **DO NOT** include quotes around the values
+- **DO NOT** use `DISCORD_TOKEN=your_bot_token_here` - use your actual token
+- Variables are case-sensitive: `DISCORD_TOKEN` not `discord_token`
+- After adding variables, Railway will automatically redeploy
+- If the bot crashes with "DISCORD_TOKEN is required", check that the variable name is exactly `DISCORD_TOKEN` (all caps)
 
 ## Docker Deployment
 
@@ -206,6 +221,32 @@ docker run -d --env-file .env discord-points-bot
 
 ## Troubleshooting
 
+### Railway: "DISCORD_TOKEN is required" error
+
+If you see this error in Railway logs:
+
+1. **Check that the variable is set:**
+   - Go to Railway dashboard → Your Project → Your Service → Variables tab
+   - Verify `DISCORD_TOKEN` exists (exact spelling, all caps)
+   - Check that the value is not empty
+
+2. **Verify the variable name:**
+   - Must be exactly: `DISCORD_TOKEN` (not `DISCORD_BOT_TOKEN`, `TOKEN`, etc.)
+   - Case-sensitive: all uppercase
+
+3. **Check for extra characters:**
+   - Make sure there are no quotes around the token value
+   - No spaces before/after the token
+   - Copy the token directly from Discord Developer Portal
+
+4. **Redeploy after adding variables:**
+   - After adding/changing variables, Railway should auto-redeploy
+   - If not, manually trigger a redeploy
+
+5. **View logs to confirm:**
+   - Check Railway logs to see if the variable is being read
+   - The bot should log "Bot logged in successfully" if the token is correct
+
 ### Bot doesn't respond
 - Check that the bot is online in your server
 - Verify the bot has "Read Messages" and "Send Messages" permissions
@@ -214,7 +255,7 @@ docker run -d --env-file .env discord-points-bot
 ### Permission errors
 - Verify the point giver roles exist in your server (e.g., `b28`, `b27`, `b26`)
 - Check that users have at least one of the configured roles assigned
-- Ensure the role names in `.env` match exactly (case-sensitive)
+- Ensure the role names in environment variables match exactly (case-sensitive)
 - For multiple roles, use comma-separated format: `POINT_GIVER_ROLE_NAMES=b28,b27,b26`
 
 ### Database errors
