@@ -133,18 +133,41 @@ async function handleMessage(message, client) {
   if (botMentioned) {
     // Remove mentions and clean up the message
     let cleanContent = content;
-    // Remove all user mentions (format: <@123456789>)
-    cleanContent = cleanContent.replace(/<@!?\d+>/g, '').trim();
+    // Remove bot mention first (format: <@123456789>)
+    cleanContent = cleanContent.replace(/<@!?\d+>/g, (match) => {
+      // Check if this is the bot's mention
+      const userId = match.replace(/<@!?|>/g, '');
+      if (userId === client.user.id) {
+        return ''; // Remove bot mention
+      }
+      return match; // Keep other mentions
+    }).trim();
     // Remove bot name if it appears as plain text
     cleanContent = cleanContent.replace(new RegExp(`@?${config.botName}`, 'gi'), '').trim();
     cleanContent = cleanContent.replace(new RegExp(`@?${client.user.username}`, 'gi'), '').trim();
     
-    // Split into words and check if first word is "stats"
+    // Split into words and check commands
     const words = cleanContent.toLowerCase().split(/\s+/).filter(word => word.length > 0);
     
     if (words.length > 0 && words[0] === 'stats') {
       const { handleStatsCommand } = require('./statsCommand');
       await handleStatsCommand(message, client);
+      return;
+    }
+    
+    // Check for delete command: @Bro delete @username
+    if (words.length > 0 && words[0] === 'delete') {
+      // Get all user mentions (excluding bot)
+      const userMentions = message.mentions.users.filter(user => user.id !== client.user.id);
+      
+      if (userMentions.size === 0) {
+        await message.reply("Please mention a user to delete from the leaderboard. Usage: @Bro delete @username");
+        return;
+      }
+      
+      const targetUser = userMentions.first();
+      const { handleDeleteCommand } = require('./deleteCommand');
+      await handleDeleteCommand(message, client, targetUser);
       return;
     }
   }

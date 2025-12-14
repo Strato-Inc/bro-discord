@@ -143,6 +143,30 @@ function getLeaderboard(limit = 10) {
 }
 
 /**
+ * Delete a user from the leaderboard
+ * @param {string} userId - Discord user ID
+ * @returns {Promise<boolean>} True if user was deleted, false if user didn't exist
+ */
+function deleteUser(userId) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Database not initialized'));
+      return;
+    }
+    
+    db.run('DELETE FROM points WHERE user_id = ?', [userId], function(err) {
+      if (err) {
+        logger.error('Error deleting user:', err);
+        reject(err);
+        return;
+      }
+      
+      resolve(this.changes > 0);
+    });
+  });
+}
+
+/**
  * Close database connection
  */
 function closeDatabase() {
@@ -167,6 +191,7 @@ module.exports = {
   getPoints,
   addPoints,
   getLeaderboard,
+  deleteUser,
   closeDatabase
 };
 

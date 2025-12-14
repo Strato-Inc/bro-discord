@@ -20,14 +20,8 @@ async function handleStatsCommand(message, client) {
     } else {
       for (let i = 0; i < leaderboard.length; i++) {
         const entry = leaderboard[i];
-        try {
-          const user = await client.users.fetch(entry.user_id);
-          const username = user ? user.username : 'Unknown User';
-          leaderboardText += `${i + 1}. @${username} — ${entry.score}\n`;
-        } catch (err) {
-          logger.warn(`Could not fetch user ${entry.user_id}:`, err);
-          leaderboardText += `${i + 1}. <@${entry.user_id}> — ${entry.score}\n`;
-        }
+        // Use Discord mention format <@user_id> for proper tagging
+        leaderboardText += `<@${entry.user_id}> — ${entry.score}\n`;
       }
     }
     

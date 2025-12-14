@@ -63,10 +63,27 @@ async function getLeaderboard(limit = 10) {
   }
 }
 
+/**
+ * Delete a user from the leaderboard
+ * @param {string} userId - Discord user ID
+ * @returns {Promise<boolean>} True if user was deleted, false if user didn't exist
+ */
+async function deleteUser(userId) {
+  try {
+    const deleted = await db.deleteUser(userId);
+    logger.info(`Deleted user ${userId} from leaderboard: ${deleted}`);
+    return deleted;
+  } catch (error) {
+    logger.error('Error in deleteUser:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   givePoint,
   removePoint,
   getUserScore,
-  getLeaderboard
+  getLeaderboard,
+  deleteUser
 };
 
